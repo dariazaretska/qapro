@@ -1,0 +1,1285 @@
+{
+	"info": {
+		"_postman_id": "4e119826-1d92-4caa-88cc-7b20dd23b434",
+		"name": "api testing homework",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20192380"
+	},
+	"item": [
+		{
+			"name": "Sign up tests",
+			"item": [
+				{
+					"name": "Sign up happypath",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// JSON Schema",
+									"const schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"status\": { \"type\": \"string\" },",
+									"        \"data\": {",
+									"            \"type\": \"object\",",
+									"            \"properties\": {",
+									"                \"userId\": { \"type\": \"number\" },",
+									"                \"photoFilename\": { \"type\": \"string\" },",
+									"                \"distanceUnits\": { \"type\": \"string\" },",
+									"                \"currency\": { \"type\": \"string\" }",
+									"            },",
+									"            \"required\": [\"userId\", \"photoFilename\", \"distanceUnits\", \"currency\"]",
+									"        }",
+									"    },",
+									"    \"required\": [\"status\", \"data\"]",
+									"};",
+									"",
+									"// Перевірка JSON-схеми",
+									"pm.test(\"Response matches JSON schema\", function() {",
+									"    pm.response.to.have.jsonSchema(schema);",
+									"});",
+									"",
+									"pm.test(\"User created successfully\", function () {",
+									"    pm.response.to.have.status(201);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"ok\");",
+									"    pm.expect(response.data).to.have.property(\"userId\");",
+									"    pm.expect(response.data).to.have.property(\"photoFilename\").that.eql(\"default-user.png\");",
+									"    pm.expect(response.data).to.have.property(\"distanceUnits\").that.eql(\"km\");",
+									"    pm.expect(response.data).to.have.property(\"currency\").that.eql(\"usd\");",
+									"    pm.environment.set(\"userId\", response.data.userId); // Збереження userId",
+									"    ",
+									"    // Збереження початкового пароля в змінну середовища",
+									"    pm.environment.set(\"initialPassword\", \"Qwerty12345\");",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const uniqueEmail = `test+${Math.floor(Math.random() * 100000)}@example.com`;",
+									"pm.environment.set(\"uniqueEmail\", uniqueEmail);",
+									"// Очищення кукі перед відправкою запиту",
+									"pm.cookies.clear();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"Qwerty12345\",\n  \"repeatPassword\": \"Qwerty12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Empty email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check empty email validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"\\\"email\\\" is not allowed to be empty\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"\",\n  \"password\": \"\",\n  \"repeatPassword\": \"qwerty12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Empty password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check empty password validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"\\\"password\\\" is not allowed to be empty\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"\",\n  \"repeatPassword\": \"qwerty12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect email format",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Email is incorrect\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"testtest.com\",\n  \"password\": \"qwerty12345\",\n  \"repeatPassword\": \"qwerty12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect password format - no Uppercase",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Password has to be from 8 to 15 characters long and contain at least one integer, one capital, and one small letter\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"qwerty12345\",\n  \"repeatPassword\": \"qwerty12345\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect password format - no Digits",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Password has to be from 8 to 15 characters long and contain at least one integer, one capital, and one small letter\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"qwertyfghh\",\n  \"repeatPassword\": \"qwertyfghh\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect password format - 7 characters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Password has to be from 8 to 15 characters long and contain at least one integer, one capital, and one small letter\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"Qwerty7\",\n  \"repeatPassword\": \"Qwerty7\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect password format - 16 characters Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Password has to be from 8 to 15 characters long and contain at least one integer, one capital, and one small letter\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"Qwertyfghh111314\",\n  \"repeatPassword\": \"Qwertyfghh111314\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Incorrect password format - confirm pass doesn't match",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check invalid email format validation\", function () {",
+									"    pm.response.to.have.status(400); ",
+									"    const response = pm.response.json();",
+									"        pm.expect(response.status).to.eql(\"error\");",
+									"    pm.expect(response.message).to.eql(\"Passwords do not match\");",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"email\": \"test@test.com\",\n  \"password\": \"Qwertyfgh1\",\n  \"repeatPassword\": \"Qwertyfgh2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Change user profile",
+			"item": [
+				{
+					"name": "Sign in happypath",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"",
+									"    // Отримання всіх кукі з відповіді",
+									"    const cookies = pm.cookies.toObject();",
+									"    console.log(cookies);",
+									"",
+									"    // Збереження всіх кукі в змінну середовища",
+									"    if (Object.keys(cookies).length > 0) {",
+									"        pm.environment.set('cookies', JSON.stringify(cookies));",
+									"    } else {",
+									"        console.error('No cookies found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Очищення кукі перед відправкою запиту",
+									"pm.cookies.clear();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{initialPassword}}\",\n  \"remember\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change user - all fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"User profile updated successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Отримати змінні з середовища",
+									"const expectedName = pm.environment.get(\"name\");",
+									"const expectedLastName = pm.environment.get(\"lastName\");",
+									"const expectedDateBirth = pm.environment.get(\"dateBirth\");",
+									"const expectedCountry = pm.environment.get(\"country\");",
+									"const expectedPhoto = pm.environment.get(\"photo\");",
+									"",
+									"// Перевірити, що відповідь містить очікувані значення",
+									"pm.test(\"Response contains expected values\", function () {",
+									"    const responseJson = pm.response.json();",
+									"",
+									"    pm.expect(responseJson.data.name).to.equal(expectedName);",
+									"    pm.expect(responseJson.data.lastName).to.equal(expectedLastName);",
+									"    pm.expect(new Date(responseJson.data.dateBirth).toISOString()).to.equal(new Date(expectedDateBirth).toISOString());",
+									"    pm.expect(responseJson.data.country).to.equal(expectedCountry);",
+									"    pm.expect(responseJson.data.photoFilename).to.equal(expectedPhoto);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const cookies = pm.environment.get('cookies');",
+									"if (!cookies) {",
+									"    throw new Error('Cookies not found in environment');",
+									"}",
+									"",
+									"const name = 'John';",
+									"const lastName = 'Doe';",
+									"const dateBirth = new Date(2000, 0, 1).toISOString(); // 1 січня 2000 року",
+									"const country = 'Ukraine';",
+									"const photo = 'user-1621352948859.jpg';",
+									"",
+									"pm.environment.set(\"name\", name);",
+									"pm.environment.set(\"lastName\", lastName);",
+									"pm.environment.set(\"dateBirth\", dateBirth);",
+									"pm.environment.set(\"country\", country);",
+									"pm.environment.set(\"photo\", photo);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"photo\": \"{{photo}}\",\n  \"name\": \"{{name}}\",\n  \"lastName\": \"{{lastName}}\",\n  \"dateBirth\": \"{{dateBirth}}\",\n  \"country\": \"{{country}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api//users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Переконайтеся, що змінна cookies збережена в середовищі",
+									"const cookies = pm.environment.get('cookies');",
+									"if (!cookies) {",
+									"    throw new Error('Cookies not found in environment');",
+									"}",
+									"",
+									"// Функція генерації пароля",
+									"function generatePassword() {",
+									"    const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';",
+									"    const lowerChars = 'abcdefghijklmnopqrstuvwxyz';",
+									"    const digits = '0123456789';",
+									"    const allChars = upperChars + lowerChars + digits;",
+									"    let password = '';",
+									"",
+									"    password += upperChars.charAt(Math.floor(Math.random() * upperChars.length));",
+									"    password += lowerChars.charAt(Math.floor(Math.random() * lowerChars.length));",
+									"    password += digits.charAt(Math.floor(Math.random() * digits.length));",
+									"",
+									"    for (let i = 3; i < 9; i++) {",
+									"        password += allChars.charAt(Math.floor(Math.random() * allChars.length));",
+									"    }",
+									"",
+									"    return password;",
+									"}",
+									"",
+									"// Генерація нового пароля за допомогою функції",
+									"const newPassword = generatePassword();",
+									"pm.environment.set('newPassword', newPassword);",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Password updated successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"ok\");",
+									"    pm.expect(response.data).to.have.property(\"userId\");",
+									"",
+									"    // Збереження нового пароля в initialPassword",
+									"    const newPassword = pm.environment.get(\"newPassword\");",
+									"    pm.environment.set(\"initialPassword\", newPassword);",
+									"});",
+									"",
+									"// Отримати змінні з середовища",
+									"const userId = pm.environment.get(\"userId\");",
+									"",
+									"// Перевірка, що ідентифікатор користувача у відповіді відповідає очікуваному",
+									"pm.test(\"User ID matches\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data.userId).to.equal(parseInt(userId, 10));",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"{{initialPassword}}\",\n  \"password\": \"{{newPassword}}\",\n  \"repeatPassword\": \"{{newPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api//users/password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"",
+								"users",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change user - Invaild date of birth",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Переконайтеся, що змінна cookies збережена в середовищі",
+									"const cookies = pm.environment.get('cookies');",
+									"if (!cookies) {",
+									"    throw new Error('Cookies not found in environment');",
+									"}",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check for invalid date format\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Check for invalid date format error\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.be.oneOf([",
+									"        \"Invalid date format\", // English",
+									"        \"Неправильний формат дати\" // Ukrainian",
+									"    ]);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"photo\": \"user-1621352948859.jpg\",\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"dateBirth\": \"17-07\",\n  \"country\": \"Ukraine\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api//users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change user - Empty name",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Переконайтеся, що змінна cookies збережена в середовищі",
+									"const cookies = pm.environment.get('cookies');",
+									"if (!cookies) {",
+									"    throw new Error('Cookies not found in environment');",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check for missing name field error\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Check for invalid date format error\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.be.oneOf([",
+									"        \"Field 'name' is required\", // English",
+									"        \"Поле 'ім'я' є обов'язковим\" // Ukrainian",
+									"    ]);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"photo\": \"user-1621352948859.jpg\",\n  \"name\": \"\",\n  \"lastName\": \"NEW\",\n  \"dateBirth\": \"2021-03-17T15:21:05.000Z\",\n  \"country\": \"Ukraine\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api//users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change user - Invalid country format",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Переконайтеся, що змінна cookies збережена в середовищі",
+									"const cookies = pm.environment.get('cookies');",
+									"if (!cookies) {",
+									"    throw new Error('Cookies not found in environment');",
+									"}",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Check for invalid email format error\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Check for invalid date format error\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.be.oneOf([",
+									"        \"Invalid country format\", // English",
+									"        \"Неправильний формат країни\" // Ukrainian",
+									"    ]);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"photo\": \"user-1621352948859.jpg\",\n  \"name\": \"John\",\n  \"lastName\": \"Dou\",\n  \"dateBirth\": \"2021-03-17T15:21:05.000Z\",\n  \"country\": 1234\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api//users/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"",
+								"users",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Log out",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Logout successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"ok\");",
+									"});",
+									"",
+									"pm.test(\"Response time is less than 200ms\", function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/logout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sign in happypath",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"",
+									"    // Отримання всіх кукі з відповіді",
+									"    const cookies = pm.cookies.toObject();",
+									"    console.log(cookies);",
+									"",
+									"    // Збереження всіх кукі в змінну середовища",
+									"    if (Object.keys(cookies).length > 0) {",
+									"        pm.environment.set('cookies', JSON.stringify(cookies));",
+									"    } else {",
+									"        console.error('No cookies found');",
+									"    }",
+									"});",
+									"",
+									"// Отримати змінні з середовища",
+									"const userId = pm.environment.get(\"userId\");",
+									"",
+									"// Перевірка, що ідентифікатор користувача у відповіді відповідає очікуваному",
+									"pm.test(\"User ID matches\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data.userId).to.equal(parseInt(userId, 10));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Очищення кукі перед відправкою запиту",
+									"pm.cookies.clear();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{initialPassword}}\",\n  \"remember\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cars requests",
+			"item": [
+				{
+					"name": "Sign in happypath",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"",
+									"    // Отримання всіх кукі з відповіді",
+									"    const cookies = pm.cookies.toObject();",
+									"    console.log(cookies);",
+									"",
+									"    // Збереження всіх кукі в змінну середовища",
+									"    if (Object.keys(cookies).length > 0) {",
+									"        pm.environment.set('cookies', JSON.stringify(cookies));",
+									"    } else {",
+									"        console.error('No cookies found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Очищення кукі перед відправкою запиту",
+									"pm.cookies.clear();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{uniqueEmail}}\",\n  \"password\": \"{{initialPassword}}\",\n  \"remember\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create car",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Car successfully created\", function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.status).to.eql(\"ok\");",
+									"    pm.expect(response.data).to.have.property(\"id\");",
+									"    pm.expect(response.data.carBrandId).to.eql(1);",
+									"    pm.expect(response.data.carModelId).to.eql(1);",
+									"    pm.expect(response.data.initialMileage).to.eql(100);",
+									"    pm.environment.set(\"carId\", response.data.id);  // Збереження id автомобіля",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"carBrandId\": 1,\n  \"carModelId\": 1,\n  \"mileage\": 100\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cars",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cars"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add car expenses",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const previousTotalCost = parseFloat(pm.environment.get(\"previousTotalCost\")) || 0;",
+									"const newTotalCost = previousTotalCost + 10; // збільшити на 10",
+									"pm.environment.set(\"totalCost\", newTotalCost);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Expense added successfully\", function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.status).to.equal(\"ok\");",
+									"    pm.expect(responseJson.data).to.have.property(\"id\");",
+									"    pm.environment.set(\"expenseId\", responseJson.data.id);",
+									"});",
+									"",
+									"pm.test(\"Response status is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Перевірка, що totalCost є більшим ніж попереднє значення",
+									"pm.test(\"Total cost is greater than previous\", function () {",
+									"    const previousCost = parseFloat(pm.environment.get(\"previousTotalCost\")) || 0;",
+									"    const currentCost = parseFloat(pm.variables.get(\"totalCost\"));",
+									"    pm.expect(currentCost).to.be.above(previousCost);",
+									"    pm.environment.set(\"previousTotalCost\", currentCost);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"carId\": \"{{carId}}\",\n  \"reportedAt\": \"2024-07-28\",\n  \"mileage\": 200,\n  \"liters\": 15,\n  \"totalCost\": {{totalCost}},\n  \"forceMileage\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/expenses",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"expenses"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User account deleted",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"User account successfully deleted\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    const response = pm.response.json();",
+							"    pm.expect(response.status).to.eql(\"ok\");",
+							"});",
+							"",
+							"// Перевірка, що статус відповіді є 200",
+							"pm.test(\"Response status is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Перевірка, що відповідь містить повідомлення про успішне видалення",
+							"pm.test(\"Response contains success message\", function () {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect(responseJson.message).to.equal(\"User account was successfully deleted\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
