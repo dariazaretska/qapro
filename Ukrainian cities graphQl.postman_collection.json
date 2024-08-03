@@ -1,0 +1,432 @@
+{
+	"info": {
+		"_postman_id": "4ce66e24-802b-4717-94ca-33f14c4ffb90",
+		"name": "Ukrainian cities graphQl",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20192380"
+	},
+	"item": [
+		{
+			"name": "get all cities",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Reset the variable to store IDs",
+							"pm.environment.unset(\"cityIDs\");",
+							"pm.environment.unset(\"cityIndex\");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response",
+							"const response = pm.response.json();",
+							"const cities = response.data.getAllCities;",
+							"",
+							"// Check if the response contains data",
+							"pm.test(\"Response should contain data\", function () {",
+							"    pm.expect(response.data).to.not.be.null;",
+							"});",
+							"",
+							"// Check if the cities array is not empty",
+							"pm.test(\"Cities array should not be empty\", function () {",
+							"    pm.expect(cities).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"// Check if each city has the required fields",
+							"cities.forEach(city => {",
+							"    pm.test(`City with ID ${city.id} should have required fields`, function () {",
+							"        pm.expect(city).to.have.property(\"id\").that.is.a(\"string\");",
+							"        pm.expect(city).to.have.property(\"name\").that.is.a(\"string\");",
+							"        pm.expect(city).to.have.property(\"square\").that.is.a(\"number\");",
+							"    });",
+							"});",
+							"",
+							"// Check if there are enough cities to choose from",
+							"pm.test(\"There should be at least 4 cities\", function () {",
+							"    pm.expect(cities.length).to.be.at.least(4);",
+							"});",
+							"",
+							"// Shuffle the array to randomize the order",
+							"for (let i = cities.length - 1; i > 0; i--) {",
+							"    const j = Math.floor(Math.random() * (i + 1));",
+							"    [cities[i], cities[j]] = [cities[j], cities[i]];",
+							"}",
+							"",
+							"// Select the first 4 cities from the shuffled array",
+							"const selectedCityIDs = cities.slice(0, 4).map(city => city.id);",
+							"",
+							"// Store the selected IDs in the environment variable",
+							"pm.environment.set(\"cityIDs\", JSON.stringify(selectedCityIDs));",
+							"",
+							"// Verify that 4 IDs have been selected",
+							"pm.test(\"Four city IDs should be selected and stored\", function () {",
+							"    pm.expect(selectedCityIDs).to.be.an(\"array\").that.has.lengthOf(4);",
+							"    selectedCityIDs.forEach(id => {",
+							"        pm.expect(id).to.be.a(\"string\");",
+							"    });",
+							"});",
+							"",
+							"console.log(\"Selected City IDs:\", selectedCityIDs);",
+							"",
+							"// Find the min and max IDs",
+							"const minID = Math.min(...selectedCityIDs);",
+							"const maxID = Math.max(...selectedCityIDs);",
+							"",
+							"// Store the min and max IDs in the environment variable",
+							"pm.environment.set(\"minID\", minID);",
+							"pm.environment.set(\"maxID\", maxID);",
+							"",
+							"// Log the selected city IDs",
+							"console.log(\"Min ID:\", minID);",
+							"console.log(\"Max ID:\", maxID);",
+							"",
+							"// Calculate the average square",
+							"const totalSquare = cities.reduce((sum, city) => sum + city.square, 0);",
+							"const averageSquare = totalSquare / cities.length;",
+							"",
+							"// Store the average square in the environment variable",
+							"pm.environment.set(\"averageSquare\", averageSquare);",
+							"",
+							"// Log the average square",
+							"console.log(\"Average Square:\", averageSquare);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query{\n  getAllCities{\n    id\n    name\n    square\n  }\n}\n",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get 4 cities description",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve the selected city IDs from the environment variable",
+							"let cityIDs = pm.environment.get(\"cityIDs\");",
+							"if (cityIDs) {",
+							"    cityIDs = JSON.parse(cityIDs);",
+							"} else {",
+							"    cityIDs = [];",
+							"}",
+							"",
+							"// Ensure we have 4 city IDs",
+							"if (cityIDs.length === 4) {",
+							"    // Define a variable to count the sent requests",
+							"    let sentRequestsCount = 0;",
+							"",
+							"    // Define a function to send requests",
+							"    const sendRequest = (id, callback) => {",
+							"        const query = `",
+							"            query {",
+							"                getCityDescription(id: \"${id}\")",
+							"            }",
+							"        `;",
+							"",
+							"        pm.sendRequest({",
+							"            url: 'https://graphql-ukrainian-cities.hillel.it/graphql',",
+							"            method: 'POST',",
+							"            header: {",
+							"                'Content-Type': 'application/graphql',",
+							"            },",
+							"            body: {",
+							"                mode: 'raw',",
+							"                raw: query,",
+							"            },",
+							"        }, function (err, res) {",
+							"            if (err) {",
+							"                console.error(`Error fetching description for city ID ${id}:`, err);",
+							"            } else {",
+							"                console.log(`Request sent for city ID ${id}`);",
+							"                sentRequestsCount++;",
+							"                if (sentRequestsCount === cityIDs.length) {",
+							"                    pm.environment.set(\"allRequestsSent\", \"true\");",
+							"                }",
+							"            }",
+							"            callback();",
+							"        });",
+							"    };",
+							"",
+							"    // Send requests for all city IDs",
+							"    cityIDs.forEach(id => {",
+							"        sendRequest(id, () => {});",
+							"    });",
+							"} else {",
+							"    console.log(\"Insufficient city IDs. Expected 4, but found:\", cityIDs.length);",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Check if all requests have been sent",
+							"let allRequestsSent = pm.environment.get(\"allRequestsSent\");",
+							"pm.test(\"All requests should have been sent\", function () {",
+							"    pm.expect(allRequestsSent).to.equal(\"true\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query getCityDescription($id: ID!) {\n  getCityDescription(id: $id)\n}",
+						"variables": "{\n\"id\": \"{{currentCityID}}\"\n}"
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get cities in a range",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve the min and max IDs from the environment variables",
+							"const minID = pm.environment.get(\"minID\");",
+							"const maxID = pm.environment.get(\"maxID\");",
+							"",
+							"// Check if minID and maxID are available",
+							"if (minID && maxID) {",
+							"    // Construct the GraphQL query using environment variables directly",
+							"    const query = `",
+							"        query {",
+							"            getCityByRangeId(filter: {minId: ${minID}, maxId: ${maxID}}) {",
+							"                id",
+							"                name",
+							"                square",
+							"            }",
+							"        }",
+							"    `;",
+							"",
+							"    // Set the request body with the constructed query",
+							"    pm.request.body.raw = query;",
+							"} else {",
+							"    console.log(\"Min ID or Max ID is not available.\");",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response",
+							"const response = pm.response.json();",
+							"",
+							"// Ensure the response contains data",
+							"pm.test(\"Response should contain data\", function () {",
+							"    pm.expect(response.data).to.not.be.null;",
+							"});",
+							"",
+							"// Ensure the response has the expected field",
+							"pm.test(\"Response should have getCityByRangeId field\", function () {",
+							"    pm.expect(response.data).to.have.property(\"getCityByRangeId\");",
+							"});",
+							"",
+							"// Retrieve the citiesInRange from the response",
+							"const citiesInRange = response.data.getCityByRangeId;",
+							"",
+							"// Check if the cities array is not empty",
+							"pm.test(\"Cities array should not be empty\", function () {",
+							"    pm.expect(citiesInRange).to.be.an(\"array\").that.is.not.empty;",
+							"});",
+							"",
+							"// Check if each city has the required fields",
+							"citiesInRange.forEach(city => {",
+							"    pm.test(`City with ID ${city.id} should have required fields`, function () {",
+							"        pm.expect(city).to.have.property(\"id\").that.is.a(\"string\");",
+							"        pm.expect(city).to.have.property(\"name\").that.is.a(\"string\");",
+							"        pm.expect(city).to.have.property(\"square\").that.is.a(\"number\");",
+							"    });",
+							"});",
+							"",
+							"// Log the cities in range",
+							"console.log(\"Cities in Range:\", citiesInRange);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "query {\n    getCityByRangeId(filter: {minId: {{minID}}, maxId: {{maxID}}}) {\n        id\n        name\n        square\n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create a city",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Function to generate a random Ukrainian diminutive city name",
+							"function generateRandomCityName() {",
+							"    const adjectives = [",
+							"        \"Сонячне\", \"Чарівне\", \"Миленьке\", \"Ласкаве\", \"Веселеньке\",",
+							"        \"Затишне\", \"Ніжне\", \"Тепле\", \"Радісне\", \"Маленьке\"",
+							"    ];",
+							"    ",
+							"    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];",
+							"    const placeholder = \"місто\"; // Placeholder ",
+							"    ",
+							"    return `${randomAdjective} ${placeholder}`;",
+							"}",
+							"",
+							"// Get the average square from the environment",
+							"const averageSquare = pm.environment.get(\"averageSquare\");",
+							"",
+							"// Generate a random city name",
+							"const cityName = generateRandomCityName();",
+							"",
+							"// Store the city name in the environment for later use",
+							"pm.environment.set(\"cityName\", cityName);",
+							"",
+							"if (averageSquare) {",
+							"    // Construct the GraphQL mutation",
+							"    const query = `",
+							"        mutation {",
+							"            addCity(name: \"${cityName}\", square: ${averageSquare}, description: \"Нове місто з випадковим ім'ям і середньою площею.\") {",
+							"                id",
+							"                name",
+							"                square",
+							"                description",
+							"            }",
+							"        }",
+							"    `;",
+							"",
+							"    // Set the request body with the constructed mutation",
+							"    pm.request.body.raw = query;",
+							"} else {",
+							"    console.log(\"Average square is not available.\");",
+							"} "
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response",
+							"const response = pm.response.json();",
+							"const newCity = response.data.addCity;",
+							"",
+							"// Check if the response contains data",
+							"pm.test(\"Response should contain data\", function () {",
+							"    pm.expect(response.data).to.not.be.null;",
+							"});",
+							"",
+							"// Check if the new city has the required fields",
+							"pm.test(\"New city should have id, name, square, and description\", function () {",
+							"    pm.expect(newCity).to.have.property(\"id\").that.is.a(\"string\");",
+							"    pm.expect(newCity).to.have.property(\"name\").that.is.a(\"string\");",
+							"    pm.expect(newCity).to.have.property(\"square\").that.is.a(\"number\");",
+							"});",
+							"",
+							"// Check if the square of the new city is equal to the average square",
+							"pm.test(\"New city square should be equal to the average square\", function () {",
+							"    const expectedSquare = parseFloat(pm.environment.get(\"averageSquare\"));",
+							"    pm.expect(newCity.square).to.be.closeTo(expectedSquare, 0.01);",
+							"});",
+							"",
+							"// Check if the name of the new city is a string and not empty",
+							"pm.test(\"New city name should be a non-empty string\", function () {",
+							"    pm.expect(newCity.name).to.be.a(\"string\").that.is.not.empty;",
+							"});",
+							"",
+							"// Check if the name of the new city matches the name sent in the request",
+							"pm.test(\"New city name should match the name sent in the request\", function () {",
+							"    const expectedCityName = pm.variables.get(\"cityName\"); // Fixed variable reference",
+							"    pm.expect(newCity.name).to.eql(expectedCityName);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "mutation {\n    addCity(name: \"{{cityName}}\", square: {{averageSquare}}, description: \"Нове місто з випадковим ім'ям і середньою площею.\") {\n        id\n        name\n        square\n    }\n}",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{url}}",
+					"host": [
+						"{{url}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
