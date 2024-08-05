@@ -1,0 +1,7 @@
+Label,# Samples,Average,Median,90% Line,95% Line,99% Line,Min,Max,Error %,Throughput,Received KB/sec,Sent KB/sec
+get all characters,100,8,7,16,17,20,1,25,0.000%,60.97561,164.88,7.50
+get character by ID,100,3,4,7,8,10,0,11,0.000%,48.05382,10.77,6.05
+create character,100,3,3,8,9,12,0,13,0.000%,47.52852,10.91,10.53
+change character,100,4,3,8,8,11,0,38,0.000%,47.05882,10.06,10.56
+delete character,100,5,4,8,10,43,0,70,0.000%,47.41584,11.53,9.95
+TOTAL,500,5,4,10,13,20,0,70,0.000%,230.09664,166.33,41.63
